@@ -588,6 +588,16 @@ func ldbWithAllFolderTruncated(db *leveldb.DB, folder []byte, fn func(device []b
 		if err != nil {
 			panic(err)
 		}
+
+		if f.Name == "" {
+			l.Infoln("Dropping invalid nil filename from database")
+			batch := new(leveldb.Batch)
+			ldbRemoveFromGlobal(db, batch, folder, device, nil)
+			batch.Delete(dbi.Key())
+			db.Write(batch, nil)
+			continue
+		}
+
 		if cont := fn(device, f); !cont {
 			return
 		}
